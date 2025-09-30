@@ -45,7 +45,7 @@ test("New franchise store", async () => {
 });
 
 afterAll(async () => {
-  const deleteRes = await request(app)
+  await request(app)
     .delete(`/api/franchise/${testFranchise.id}`)
     .set('Authorization', `Bearer ${testUserAuthToken}`);
 });
