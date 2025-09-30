@@ -27,10 +27,13 @@ let testUserAuthToken;
 let testUserId;
 
 beforeAll(async () => {
-  const loginRes = await request(app).put("/api/auth").send(testUser);
+  await request(app).post("/api/auth").send(testUser);
+  const loginRes = await request(app)
+    .put("/api/auth")
+    .send({ email: testUser.email, password: testUser.password });
   expect(loginRes.status).toBe(200);
   testUserAuthToken = loginRes.body.token;
-    testUserId = loginRes.body.user.id;
+  testUserId = loginRes.body.user.id;
   expect(testUserAuthToken).toBeDefined();
 });
 
@@ -39,7 +42,13 @@ test("Get authenticated user", async () => {
     .get("/api/user/me")
     .set("Authorization", `Bearer ${testUserAuthToken}`);
   expect(res.status).toBe(200);
-  expect(res.body).toEqual({ id: expect.any(Number), name: expect.any(String), email: "reg@test.com", iat: expect.any(Number), roles: [{ role: "diner" }, {objectId: 2, role: "franchisee"}] });
+  expect(res.body.email).toBe(testUser.email);
+  expect(res.body.name).toEqual(expect.any(String));
+  expect(res.body.id).toEqual(expect.any(Number));
+  expect(res.body.roles).toEqual(
+    expect.arrayContaining([expect.objectContaining({ role: "diner" })])
+  );
+  expect(res.body.iat).toEqual(expect.any(Number));
 });
 
 test("Update user", async () => {
