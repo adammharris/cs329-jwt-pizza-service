@@ -37,7 +37,7 @@ jobs:
         run: npm run lint
 
       - name: Fill temporary database with dummy values
-        run: bash generatePizzaData.sh
+        run: bash generatePizzaData.sh http://localhost:3306
       
       - name: Write config file
         run: |
