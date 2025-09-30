@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../service");
+const expectValidJwt = require("./routeTestUtils.js");
 
 const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
 let testUserAuthToken;
@@ -32,11 +33,5 @@ test("register", async () => {
 });
 
 test("logout", async () => {
-  expect("unimplemented" == 0);
+  expect("unimplemented" === 0);
 });
-
-function expectValidJwt(potentialJwt) {
-  expect(potentialJwt).toMatch(
-    /^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/,
-  );
-}
