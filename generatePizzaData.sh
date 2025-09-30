@@ -12,6 +12,8 @@ token=$(echo $response | jq -r '.token')
 # Add users
 curl -X POST $host/api/auth -d '{"name":"pizza diner", "email":"d@jwt.com", "password":"diner"}' -H 'Content-Type: application/json'
 curl -X POST $host/api/auth -d '{"name":"pizza franchisee", "email":"f@jwt.com", "password":"franchisee"}' -H 'Content-Type: application/json'
+# Add the test user expected by CI tests
+curl -X POST $host/api/auth -d '{"name":"pizza diner", "email":"reg@test.com", "password":"a"}' -H 'Content-Type: application/json'
 
 # Add menu
 curl -X PUT $host/api/order/menu -H 'Content-Type: application/json' -d '{ "title":"Veggie", "description": "A garden of delight", "image":"pizza1.png", "price": 0.0038 }'  -H "Authorization: Bearer $token"
@@ -20,8 +22,13 @@ curl -X PUT $host/api/order/menu -H 'Content-Type: application/json' -d '{ "titl
 curl -X PUT $host/api/order/menu -H 'Content-Type: application/json' -d '{ "title":"Crusty", "description": "A dry mouthed favorite", "image":"pizza4.png", "price": 0.0028 }'  -H "Authorization: Bearer $token"
 curl -X PUT $host/api/order/menu -H 'Content-Type: application/json' -d '{ "title":"Charred Leopard", "description": "For those with a darker side", "image":"pizza5.png", "price": 0.0099 }'  -H "Authorization: Bearer $token"
 
-# Add franchise and store
-curl -X POST $host/api/franchise -H 'Content-Type: application/json' -d '{"name": "pizzaPocket", "admins": [{"email": "f@jwt.com"}]}'  -H "Authorization: Bearer $token"
-curl -X POST $host/api/franchise/1/store -H 'Content-Type: application/json' -d '{"franchiseId": 1, "name":"SLC"}'  -H "Authorization: Bearer $token"
+# Add franchise and store (use returned franchise id instead of hard-coded 1)
+franchise_res=$(curl -s -X POST $host/api/franchise -H 'Content-Type: application/json' -d '{"name": "pizzaPocket", "admins": [{"email": "f@jwt.com"}]}'  -H "Authorization: Bearer $token")
+franchise_id=$(echo "$franchise_res" | jq -r '.id')
+if [ "$franchise_id" = "null" ] || [ -z "$franchise_id" ]; then
+  echo "Failed to create franchise, response: $franchise_res"
+else
+  curl -X POST $host/api/franchise/$franchise_id/store -H 'Content-Type: application/json' -d "{\"franchiseId\": $franchise_id, \"name\":\"SLC\"}"  -H "Authorization: Bearer $token"
+fi
 
 echo "Database data generated"
