@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../service");
+const { DB, Role } = require("../database/database");
 
 const testUser = {
   name: "pizza diner",
@@ -7,7 +8,11 @@ const testUser = {
   password: "a",
 };
 
-const adminCredentials = { email: "a@jwt.com", password: "admin" };
+const adminCredentials = {
+  name: "Orders Admin",
+  email: `orders-admin-${Date.now()}@test.com`,
+  password: "admin",
+};
 
 let menuId;
 let franchiseId;
@@ -23,7 +28,8 @@ async function loginAndGetToken(credentials) {
 beforeAll(async () => {
   await request(app).post("/api/auth").send(testUser);
 
-  const adminToken = await loginAndGetToken(adminCredentials);
+  await DB.addUser({ ...adminCredentials, roles: [{ role: Role.Admin }] });
+  const adminToken = await loginAndGetToken({ email: adminCredentials.email, password: adminCredentials.password });
 
   const menuRes = await request(app)
     .put("/api/order/menu")
