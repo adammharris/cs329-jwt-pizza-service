@@ -75,6 +75,24 @@ class DB {
     }
   }
 
+  async getUsers() {
+    const connection = await this.getConnection();
+    try {
+      const usersResult = await this.query(connection, `SELECT * FROM user`);
+      const users = {};
+      for (const user of usersResult) {
+        const roleResult = await this.query(connection, `SELECT * FROM userRole WHERE userId=?`, [user.id]);
+        const roles = roleResult.map((r) => {
+          return { objectId: r.objectId || undefined, role: r.role };
+        });
+        users[user.id] = { ...user, roles: roles, password: undefined };
+      }
+      return users;
+    } finally {
+      connection.end();
+    }
+  }
+
   async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {

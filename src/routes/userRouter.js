@@ -59,7 +59,7 @@ userRouter.docs = [
     description: "Delete user",
     example: `curl -X DELETE localhost:3000/api/user/1 -H 'Authorization: Bearer tttttt'`,
     response: { message: "user deleted" },
-  }
+  },
 ];
 
 // list users
@@ -67,7 +67,7 @@ userRouter.get(
   "/",
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    res.json({});
+    res.json(await DB.getUsers(req.query));
   })
 );
 
