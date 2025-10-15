@@ -81,6 +81,20 @@ test("list users", async () => {
   );
 });
 
+test("Delete user unauthorized", async () => {
+  const deleteRes = await request(app).delete(`/api/user/${testUserId}`);
+  expect(deleteRes.status).toBe(401);
+});
+
+test("Delete user", async () => {
+  const [user, userToken] = await registerUser(request(app));
+  const deleteRes = await request(app)
+    .delete(`/api/user/${user.id}`)
+    .set("Authorization", `Bearer ${userToken}`);
+  expect(deleteRes.status).toBe(200);
+  expect(deleteRes.body.message).toBe("user deleted");
+});
+
 async function registerUser(service) {
   const testUser = {
     name: "pizza diner",
