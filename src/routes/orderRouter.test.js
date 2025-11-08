@@ -25,7 +25,21 @@ async function loginAndGetToken(credentials) {
   return res.body.token;
 }
 
+let originalFetch;
+
 beforeAll(async () => {
+  originalFetch = global.fetch;
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          reportUrl: 'https://factory.example.com/report',
+          jwt: 'factory-jwt',
+        }),
+    })
+  );
+
   await request(app).post("/api/auth").send(testUser);
 
   await DB.addUser({ ...adminCredentials, roles: [{ role: Role.Admin }] });
@@ -53,6 +67,10 @@ beforeAll(async () => {
     .send({ franchiseId, name: "Orders Test Store" });
   expect(storeRes.status).toBe(200);
   storeId = storeRes.body.id;
+});
+
+afterAll(() => {
+  global.fetch = originalFetch;
 });
 
 
@@ -90,7 +108,7 @@ test("Create order for user", async () => {
   expect(res.status).toBe(200);
   expect(res.body).toMatchObject({
     order: { franchiseId, storeId, items: [{ menuId, description: "Veggie", price: 0.05 }], id: expect.any(Number) },
-    jwt: expect.any(String),
+    jwt: 'factory-jwt',
   });
   if (res.body.followLinkToEndChaos) {
     expect(typeof res.body.followLinkToEndChaos).toBe("string");

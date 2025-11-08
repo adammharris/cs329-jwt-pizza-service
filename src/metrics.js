@@ -47,8 +47,7 @@ function getMemoryUsagePercentage() {
   return parseFloat(memoryUsage.toFixed(2));
 }
 
-// This will periodically send metrics to Grafana
-setInterval(async () => {
+async function collectMetrics() {
   try {
     const metrics = [];
 
@@ -99,7 +98,30 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error collecting metrics:', error);
   }
-}, METRIC_PUSH_INTERVAL);
+}
+
+let metricsIntervalHandle = null;
+
+function startMetricsCollection() {
+  if (metricsIntervalHandle || METRIC_PUSH_INTERVAL <= 0) {
+    return metricsIntervalHandle;
+  }
+  metricsIntervalHandle = setInterval(() => {
+    collectMetrics();
+  }, METRIC_PUSH_INTERVAL);
+  return metricsIntervalHandle;
+}
+
+function stopMetricsCollection() {
+  if (metricsIntervalHandle) {
+    clearInterval(metricsIntervalHandle);
+    metricsIntervalHandle = null;
+  }
+}
+
+if (process.env.NODE_ENV !== 'test') {
+  startMetricsCollection();
+}
 
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
   attributes = { ...attributes, source: metricsConfig.source };
@@ -277,7 +299,10 @@ module.exports = {
   requestLatencyTracker,
   activeUserTracker,
   authTracker,
-  pizzaMetricsTracker
+  pizzaMetricsTracker,
+  __collectMetricsForTest: collectMetrics,
+  __startMetricsCollection: startMetricsCollection,
+  __stopMetricsCollection: stopMetricsCollection
 };
 
 
