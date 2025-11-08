@@ -23,32 +23,6 @@ function requestTracker(req, res, next) {
   next();
 }
 
-// Track active users
-function trackActiveUser(userId) {
-  if (userId) {
-    activeUsers.add(userId);
-  }
-}
-
-// Track authentication attempts
-function trackAuthAttempt(success) {
-  if (success) {
-    authAttempts.success++;
-  } else {
-    authAttempts.failure++;
-  }
-}
-
-// Track pizza purchases
-function trackPizzaPurchase(success, revenue = 0) {
-  if (success) {
-    pizzaMetrics.purchases++;
-    pizzaMetrics.revenue += revenue;
-  } else {
-    pizzaMetrics.creationFailures++;
-  }
-}
-
 // Track pizza creation latency
 function trackPizzaLatency(latencyMs) {
   if (!Number.isFinite(latencyMs)) {
@@ -275,7 +249,7 @@ function pizzaMetricsTracker(req, res, next) {
       if (typeof data === 'string') {
         try {
           responseData = JSON.parse(data);
-        } catch (e) {
+        } catch {
           responseData = data;
         }
       }
