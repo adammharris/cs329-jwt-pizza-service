@@ -93,7 +93,7 @@ async function flushLogs() {
       {
         stream: {
           service_name: "jwt-pizza-service",
-          source: loggingConfig.source || "jwt-pizza-service",
+          source: loggingConfig.source || "jwt-pizza-service-prod",
           userId: loggingConfig.userId
             ? String(loggingConfig.userId)
             : undefined,
