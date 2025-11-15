@@ -165,6 +165,12 @@ function httpLoggerMiddleware(req, res, next) {
 
   const hasAuthHeader = Boolean(req.headers && req.headers.authorization);
   const requestBody = req.body;
+  let requestBodyString;
+  try {
+    requestBodyString = JSON.stringify(sanitizeValue(requestBody));
+  } catch {
+    requestBodyString = '"<unserializable requestBody>"';
+  }
 
   const originalJson = res.json.bind(res);
   const originalSend = res.send.bind(res);
@@ -191,7 +197,7 @@ function httpLoggerMiddleware(req, res, next) {
       statusCode: res.statusCode,
       latencyMs,
       hasAuthorization: hasAuthHeader,
-      requestBody,
+      requestBodyString,
       responseBody,
       ip: req.ip,
     });
