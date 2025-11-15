@@ -179,7 +179,7 @@ async function sendMetricToGrafana(metrics) {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
-      Authorization: `Bearer ${metricsConfig.apiKey}`,
+      Authorization: `Bearer ${metricsConfig.userId}:${metricsConfig.apiKey}`,
       'Content-Type': 'application/json',
     },
   });
