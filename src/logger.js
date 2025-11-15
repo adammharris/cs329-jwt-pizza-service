@@ -29,8 +29,7 @@ function sanitizeValue(value) {
   }
 
   if (typeof value === "string") {
-    // If it looks like a bearer / API key / long token, redact it
-    if (/bearer\s+.+/i.test(value) || value.length > 32) {
+    if (/bearer\s+.+/i.test(value)) {
       return "**redacted**";
     }
     return value;
@@ -93,7 +92,11 @@ async function flushLogs() {
     streams: [
       {
         stream: {
-          component: loggingConfig.source || "jwt-pizza-service",
+          service_name: "jwt-pizza-service",
+          source: loggingConfig.source || "jwt-pizza-service",
+          userId: loggingConfig.userId
+            ? String(loggingConfig.userId)
+            : undefined,
         },
         values: batch.map((entry) => [
           String(Date.now() * 1_000_000),
@@ -131,7 +134,7 @@ async function flushLogs() {
   } catch (err) {
     console.error("Error pushing logs to Grafana Loki", err.message);
   }
-  console.log("Flushing logs to Grafana Loki, entries:", batch.length);
+  //console.log("Flushing logs to Grafana Loki, entries:", batch.length);
 }
 
 function startLogFlush() {
@@ -182,7 +185,7 @@ function httpLoggerMiddleware(req, res, next) {
     const diff = process.hrtime.bigint() - start;
     const latencyMs = Number(diff) / 1e6;
 
-    pushLog("info", "http_request", {
+    pushLog("info", "http", {
       method: req.method,
       path: req.originalUrl || req.url,
       statusCode: res.statusCode,
@@ -226,7 +229,7 @@ function logFactoryRequest({
   responseBody,
   statusCode,
 }) {
-  pushLog("info", "factory_request", {
+  pushLog("info", "db", {
     url,
     method,
     statusCode,
@@ -238,10 +241,11 @@ function logFactoryRequest({
 // --- Unhandled exception logging -----------------------------------------
 
 function logError(err, context = {}) {
+  const safeContext = sanitizeValue(context);
   pushLog("error", err.message || "Unhandled error", {
     name: err.name,
     stack: err.stack,
-    ...context,
+    ...safeContext,
   });
 }
 

@@ -23,12 +23,6 @@ describe('logger sanitization', () => {
     expect(out.nested.other).toBe('ok');
   });
 
-  test('redacts long string tokens', () => {
-    const token = 'x'.repeat(64);
-    const out = sanitizeValue(token);
-    expect(out).toBe('**redacted**');
-  });
-
   test('safeJson does not throw on circular structures', () => {
     const obj = {};
     obj.self = obj;

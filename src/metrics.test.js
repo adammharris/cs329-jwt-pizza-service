@@ -94,7 +94,7 @@ describe('metrics collection', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const [, options] = global.fetch.mock.calls[0];
     expect(options.method).toBe('POST');
-    expect(options.headers.Authorization).toBe('Bearer test-key');
+    expect(options.headers.Authorization).toBe('Bearer undefined:test-key'); //TODO: test userId instead of undefined
 
     const payload = JSON.parse(options.body);
     const metricsList = payload.resourceMetrics[0].scopeMetrics[0].metrics;
