@@ -115,6 +115,21 @@ orderRouter.post(
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
+    
+    // Fetch menu prices from database to prevent price manipulation
+    const menu = await DB.getMenu();
+    const menuPrices = new Map(menu.map(item => [item.id, { price: item.price, description: item.title }]));
+    
+    // Replace request prices with database prices
+    for (const item of orderReq.items) {
+      const menuItem = menuPrices.get(item.menuId);
+      if (!menuItem) {
+        throw new StatusCodeError(`Invalid menu item: ${item.menuId}`, 400);
+      }
+      item.price = menuItem.price;
+      item.description = menuItem.description;
+    }
+    
     const order = await DB.addDinerOrder(req.user, orderReq);
     const factoryRequestBody = {
       diner: { id: req.user.id, name: req.user.name, email: req.user.email },
